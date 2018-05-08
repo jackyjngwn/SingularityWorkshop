@@ -29,10 +29,8 @@ From: debian:latest
 
 %runscript
 
-  /bin/bash
-
 %test
 
-  PYSIT=$(conda list pysit | grep pysit)
+  PYSIT=$(/opt/conda/bin/conda list pysit | grep pysit)
   echo $PYSIT
 
