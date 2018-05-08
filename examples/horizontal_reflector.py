@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 from pysit import *
 from pysit.gallery import horizontal_reflector
 
-assert len(sys.argv) == 2
-
 if __name__ == '__main__':
 	# Setup
 
@@ -115,5 +113,4 @@ if __name__ == '__main__':
 	vis.plot(result.C, m, clim=clim)
 	plt.title('Reconstruction')
 	
-	#plt.savefig('/data/output.png')
-        plt.savefig(sys.argv[1])
+	plt.savefig('output.png')
