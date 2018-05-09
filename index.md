@@ -603,7 +603,7 @@ A few things to consider when using HPC systems:
 In this section, we cover some of the advanced capabilities of singularity.
 
 
-## Singularity and MPI
+### Singularity and MPI
 
 Singularity was designed to support HPC applications, so it naturally supports MPI and communication over the host fabric. Which usually just works because the network is the same inside and outside the container. The more complicated bit is making sure that the container has the right set of MPI libraries. MPI is an open specification, but there are several implementations (OpenMPI, MVAPICH2, and Intel MPI to name three) with some non-overlapping feature sets. If the host and container are running different MPI implementations, or even different versions of the same implementation, hilarity may ensue.
 
@@ -616,7 +616,7 @@ The general rule is that you want the version of MPI inside the container to be 
 
 The Stampede 2’s Intel MPI implementation is ABI compatible with MPICH, which *can* be `apt-get` installed from normal Ubuntu repositories. Lonestar 5’s cray_mpich is a separate [can of worms](https://github.com/singularityware/singularity/issues/876), so we recommend using Stampede2 for singularity+mpi.
 
-### Hello World
+#### Hello World
 
 
 While not the most exciting, it is mandatory that we compile and run a singularity-based hello world MPI image. This means we’ll be writing another definition file.
@@ -710,7 +710,7 @@ ibrun singularity run hello_mpi.img
 This will hopefully get you started building your own MPI-enabled containers.
 
 <br>
-## Singularity and GPU computing
+### Singularity and GPU computing
 
 We will not cover GPU computing in this workshop, as Jetstream and Stampede2 do not have GPUs. However, know that GPUs are supported in singularity. Since singularity supported docker containers, it has been fairly simple to utilize GPUs for machine learning code like TensorFlow. For example, singularity commands on a machine with GPUs available may appear as:
 
