@@ -1,0 +1,21 @@
+Bootstrap: docker
+From: continuumio/anaconda:latest
+
+%setup
+
+%post
+
+  apt-get update && apt-get install -y build-essential gfortran
+  /opt/conda/bin/pip install obspy==0.9.0 pyamg pysit
+
+%labels
+
+%environment
+
+%runscript
+
+%test
+
+  PYSIT=$(/opt/conda/bin/conda list pysit | grep pysit)
+  echo $PYSIT
+
