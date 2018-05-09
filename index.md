@@ -514,6 +514,9 @@ $ singularity exec pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
 
 If all goes well, you should find an ‘output.png’ file in the current directory. View it in the Jetstream web desktop UI.
 
+<img src="examples/output.png">
+
+
 <br>
 # Singularity on HPC
 
