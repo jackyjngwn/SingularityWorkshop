@@ -454,7 +454,7 @@ From: debian:latest
 This is an abridged, simpler version of the above definition file that has anaconda pre-installed:
 
 ```
-################################################## pysit2.def
+################################################## pysit-2.def
 Bootstrap: docker
 From: continuumio/anaconda:latest
 
@@ -462,13 +462,12 @@ From: continuumio/anaconda:latest
 
 %post
 
+  apt-get update && apt-get install -y build-essential gfortran
   /opt/conda/bin/pip install obspy==0.9.0 pyamg pysit
 
 %labels
 
 %environment
-
-  SINGULARITYENV_PREPEND_PATH=/opt/conda/bin
 
 %runscript
 
@@ -486,8 +485,11 @@ From: continuumio/anaconda:latest
 After creating your image, you can bootstrap the image as follows:
 
 ```
-$ singularity create -F -s 4096 pysit-0.5b3.img
+$ singularity create -F -s 8192 pysit-0.5b3.img
 $ sudo singularity bootstrap pysit-0.5b3.img pysit.def
+- or -
+$ singularity create -F -s 8192 pysit-0.5b3-2.img
+$ sudo singularity bootstrap pysit-0.5b3-2.img pysit-2.def
 ```
 
 Next, download a test script with the following command:
