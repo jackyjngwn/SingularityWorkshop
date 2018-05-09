@@ -1,4 +1,6 @@
-Navigation:
+<img src="images/singularity.png">
+
+## Navigation:
 
 * [Onboarding](#onboarding)
 * [Intro to Containers](#intro-to-containers)
@@ -6,10 +8,14 @@ Navigation:
 * [Pulling Containers](#pulling-containers)
 * [Running Containers](#running-containers)
 * [Building Containers](#building-containers)
+* [Singularity on HPC](#singularity-on-hpc)
+* [Advanced Singularity](#advanced-singularity)
+* [Bring Your Own Code](#bring-your-own-code)
+* [Singularity Resources](#singularity-resources)
 
 # Onboarding
 
-This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers.
+This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers. We will first take a few mintues to make sure everyone has TACC / XSEDE accounts, and hand out training account information where appropriate.
 
 <br>
 # Intro to Containers
@@ -91,7 +97,6 @@ Pasting text is somewhat clunky, but output formatting is somewhat better in thi
 `ctrl+alt+shift`
 
 <img src="images/jetstream8.png">
-
 
 Paste your text in the text box, exit the side window by hitting
 
@@ -336,53 +341,64 @@ Similar to the `CMD` rule for Docker containers, a singularity container contain
 <br>
 # Building Containers
 
+<img src="images/pysit.png">
 
-
-PySIT is an open source toolbox for seismic inversion and seismic imaging developed by Russell J. Hewett and Laurent Demanet in the Imaging and Computing Group in the Department of Mathematics at MIT.
+[PySIT](http://pysit.org/) is an open source toolbox for seismic inversion and seismic imaging developed by Russell J. Hewett and Laurent Demanet in the Imaging and Computing Group in the Department of Mathematics at MIT.
 
 Here, we will demonstrate how to build a singularity image of the PySIT toolbox, then run the “horizontal reflector” demo described here:
 
-http://pysit.readthedocs.io/en/latest/examples/horizontal_reflector.html
+[http://pysit.readthedocs.io/en/latest/examples/horizontal_reflector.html](http://pysit.readthedocs.io/en/latest/examples/horizontal_reflector.html)
 
+<br>
 ## Singularity Bootstrap
 Besides pulling pre-built docker images, you can build your own by writing a definition file and bootstrapping (building) the image on your own.
 
 A singularity file contains a header, which specifies the manager and base OS to build from.
 
+<br>
 ### Docker header
+```
 Bootstrap: docker
 From: ubuntu:latest
+```
 
+<br>
 ### Centos header
+```
 BootStrap: yum
 OSVersion: 7
 MirrorURL: http://mirror.centos.org/centos-%{OSVERSION}/%{OSVERSION}/os/$basearch/
 Include: yum
+```
 
+<br>
 ### Definition sections
 After you make your header, you just need to write the sections of your container.
 
-%setup - When you need to run commands and copy files into the container before %post
-%post - The actual setup commands
-Making directories
-yum/apt commands
-git clone
-make
-%labels - Any metadata you want associated with your container
-NAME VALUE
-%environment - Environment values that are sources whenever using the container
-NAME VALUE
-%runscript - This is what runs when you singularity run the container
-Prefix the execution command with exec
-%test - A test to make sure the container was built correctly
-Runs after %post
-Run anytime using singularity test
+* `%setup` - When you need to run commands and copy files into the container before `%post`
+* `%post` - The actual setup commands
+** Making directories
+** yum/apt commands
+** git clone
+** make
+* `%labels` - Any metadata you want associated with your container
+** NAME VALUE
+* `%environment` - Environment values that are sources whenever using the container
+** NAME VALUE
+* `%runscript` - This is what runs when you singularity run the container
+** Prefix the execution command with exec
+* `%test` - A test to make sure the container was built correctly
+** Runs after `%post`
+** Run anytime using singularity test
 
+<br>
 ### Definition file for PySIT
 
 Pull an example PySIT definition file with the following command:
 
-wget https://raw.githubusercontent.com/wjallen/SingularityWorkshop/master/examples/pysit.def
+```
+$ wget https://raw.githubusercontent.com/wjallen/SingularityWorkshop/master/examples/pysit.def
+```
 
 Or, better yet, type it out manually:
 
@@ -425,56 +441,100 @@ From: debian:latest
 
 ##################################################
 
+################################################## pysit2.def
+Bootstrap: docker
+From: continuumio/anaconda:latest
+
+%setup
+
+%post
+
+  /opt/conda/bin/pip install obspy==0.9.0 pyamg pysit
+
+%labels
+
+%environment
+
+  SINGULARITYENV_PREPEND_PATH=/opt/conda/bin
+
+%runscript
+
+%test
+
+  PYSIT=$(/opt/conda/bin/conda list pysit | grep pysit)
+  echo $PYSIT
+
+##################################################
+
+
+<br>
 ### Bootstrapping
 After creating your image, you can bootstrap the image as follows:
 
-singularity create -F -s 4096 pysit-0.5b3.img
-sudo singularity bootstrap pysit-0.5b3.img pysit.def
+```
+$ singularity create -F -s 4096 pysit-0.5b3.img
+$ sudo singularity bootstrap pysit-0.5b3.img pysit.def
+```
 
 Next, download a test script with the following command:
 
-wget https://raw.githubusercontent.com/wjallen/SingularityWorkshop/master/examples/horizontal_reflector.py
+```
+$ wget https://raw.githubusercontent.com/wjallen/SingularityWorkshop/master/examples/horizontal_reflector.py
+```
 
 This python script will generate random seismic data, execute an inversion algorithm, then plot the results in an output figure. Trying to run the script locally will fail, as the PySIT libraries are not found:
 
-python horizontal_reflector.py
+```
+$ python horizontal_reflector.py
+...
+ImportError: No module named pysit
+```
 
 Run the python script inside the container as follows:
 
-singularity exec pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
+```
+$ singularity exec pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
+```
 
 If all goes well, you should find an ‘output.png’ file in the current directory. View it in the Jetstream web desktop UI.
 
-
-
+<br>
 # Singularity on HPC
 
 Up to now, we have run singularity on our cloud system, Jetstream. This is analogous to how singularity could be run on our personal computers or small servers. In the next section we will demonstrate how to run singularity on the Stampede2 supercomputer using the batch queueing system. This enables large-scale, parallel jobs employing MPI.
 
-First, log into the TACC Vis Portal: https://vis.tacc.utexas.edu/
+First, log into the TACC Vis Portal using your XSEDE credentials: https://vis.tacc.utexas.edu/
 
+<img src="images/vis1.png">
 
 Click on the ‘Stampede2’ tab, scroll down, and click ‘Set VNC Password’. This should NOT be your TACC / XSEDE password, this can be something benign like ‘12345’.
 
+<img src="images/vis2.png">
 
 Click on the Stampede2 tab again, and click ‘Start Job’. A job will be submitted to the Stampede2 queue on your behalf. Watch the progress message until it starts running:
 
+<img src="images/vis3.png">
 
 When the job begins, a new tab will be available on the top of the page. Click the ‘Desktop’ tab, enter your VNC password (e.g. ‘12345’), and press Return.
 
+<img src="images/vis4.png">
 
 Then, you will be taken to a virtual desktop on a Stampede2 compute node, complete with a GUI and terminal interface.
 
+<img src="images/vis5.png">
 
 
 Most jobs on an HPC cluster are neither interactive, nor realtime. When you submit a job to the scheduler, you must tell it what resources you need (e.g. how many nodes, what type of nodes) and what you want to run. Then the scheduler finds resources matching your requirements, and runs the job for you when it can.
 
 For example, if you want to run the command:
 
-singularity exec pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
+```
+$ singularity exec pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
+```
 
 On an HPC system, your job submission script would look something like:
 
+```
 #!/bin/bash
 #
 #SBATCH -J myjob                      # Job name
@@ -487,50 +547,65 @@ On an HPC system, your job submission script would look something like:
 module load tacc-singularity
 IMGLOC=/work/03439/wallen/public
 singularity exec $IMGLOC/pysit-0.5b3.img /opt/conda/bin/python horizontal_reflector.py
+```
 
-
-This example is for the Slurm scheduler, a popular one used by all TACC systems. Each of the #SBATCH lines looks like a comment to the bash kernel, but the scheduler reads all those lines to know what resources to reserve for you.
+This example is for the Slurm scheduler, a popular one used by all TACC systems. Each of the `#SBATCH` lines looks like a comment to the bash kernel, but the scheduler reads all those lines to know what resources to reserve for you.
 
 Because we logged in via the Vis Portal, we are automatically in an interactive session on a compute node. However, batch jobs must be submitted from login nodes. So, first ssh over to a compute node and submit the batch job from there:
 
-ssh login1
-sbatch batch.slurm
+```
+$ ssh login1
+$ sbatch batch.slurm
+```
 
-
-Note: Every HPC cluster is a little different, but they almost universally have a “User’s Guide” that serves both as a quick reference for helpful commands and contains guidelines for how to be a “good citizen” while using the system. For TACC’s Stampede2 system, the user guide is at: https://portal.tacc.utexas.edu/user-guides/stampede2
+Note: Every HPC cluster is a little different, but they almost universally have a “User’s Guide” that serves both as a quick reference for helpful commands and contains guidelines for how to be a “good citizen” while using the system. For TACC’s Stampede2 system, the user guide is at: [https://portal.tacc.utexas.edu/user-guides/stampede2](https://portal.tacc.utexas.edu/user-guides/stampede2)
 
 A few things to consider when using HPC systems:
 
-Using ‘sudo’ is not allowed on HPC systems, and building a Singularity container from scratch requires sudo. That means you have to build your containers on a different development system. You can pull a docker image on HPC systems
-If you need to edit text files, command line text editors don’t support using a mouse, so working efficiently has a learning curve. There are text editors that support editing files over SSH. This lets you use a local text editor and just save the changes to the HPC system.
-Singularity is in the process of changing image formats. Depending on the version of Singularity running on the HPC system, new squashFS or .simg formats may not work.
+* Using ‘sudo’ is not allowed on HPC systems, and building a Singularity container from scratch requires sudo. That means you have to build your containers on a different development system. You can pull a docker image on HPC systems
+* If you need to edit text files, command line text editors don’t support using a mouse, so working efficiently has a learning curve. There are text editors that support editing files over SSH. This lets you use a local text editor and just save the changes to the HPC system.
+* Singularity is in the process of changing image formats. Depending on the version of Singularity running on the HPC system, new squashFS or .simg formats may not work.
 
 
-
-
-
+<br>
 # Advanced Singularity
 
+<br>
 ## Singularity and MPI
 
+<br>
 ## Singularity and GPU Computing
 
-
+<br>
 # Bring Your Own Code
 
-Do you have some software that you would like to containerize? Let’s use this time to work together on it.
+Do you have some software that you would like to containerize? Let’s use any remaining time to work together on it.
 
-
-
+<br>
 # Singularity Resources
-## Singularity related resources
-`Singularity Homepage <http://singularity.lbl.gov/>`
-`Singularity Hub <https://www.singularity-hub.org/>`
-`University of Arizona Singularity Tutorials <https://docs.hpc.arizona.edu/display/UAHPC/Singularity+Tutorials>`
-`NIH HPC <https://hpc.nih.gov/apps/singularity.html>`
-`Dolmades - Windows Apps in Linux Docker-Singularity Containers <http://dolmades.org>`_ *Warning not tested*
+
+<br>
+## Singularity Related Resources
+
+[Singularity Homepage](http://singularity.lbl.gov/)
+
+[Singularity Hub](https://www.singularity-hub.org/)
+
+[University of Arizona Singularity Tutorials](https://docs.hpc.arizona.edu/display/UAHPC/Singularity+Tutorials)
+
+[NIH HPC](https://hpc.nih.gov/apps/singularity.html)
+
+[Dolmades - Windows Apps in Linux Docker-Singularity Containers](http://dolmades.org) *Warning not tested*
+
+<br>
 ## Singularity Talks
+
 Gregory Kurtzer, creator of Singularity has provided two good talks online:
-Introduction to Singularity <https://wilsonweb.fnal.gov/slides/hpc-containers-singularity-introductory.pdf>`
-`Advanced Singularity <https://www.intel.com/content/dam/www/public/us/en/documents/presentation/hpc-containers-singularity-advanced.pdf>`_.
-Vanessa Sochat, lead developer of Singularity Hub, also has given a great talk on `Singularity <https://docs.google.com/presentation/d/14-iKKUpGJC_1qpVFVUyUaitc8xFSw9Rp3v_UE9IGgjM/pub?start=false&loop=false&delayms=3000&slide=id.g1c1cec989b_0_154>`_ which you can see online.
+
+[Introduction to Singularity](https://wilsonweb.fnal.gov/slides/hpc-containers-singularity-introductory.pdf)
+
+[Advanced Singularity](https://www.intel.com/content/dam/www/public/us/en/documents/presentation/hpc-containers-singularity-advanced.pdf>)
+
+Vanessa Sochat, lead developer of Singularity Hub, also has given a great talk on:
+
+[Singularity](https://docs.google.com/presentation/d/14-iKKUpGJC_1qpVFVUyUaitc8xFSw9Rp3v_UE9IGgjM/pub?start=false&loop=false&delayms=3000&slide=id.g1c1cec989b_0_154>)
