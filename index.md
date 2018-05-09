@@ -598,11 +598,117 @@ A few things to consider when using HPC systems:
 <br>
 # Advanced Singularity
 
-<br>
-### Singularity and MPI
+In this section, we cover some of the advanced capabilities of singularity.
+##Singularity and MPI
+Singularity was designed to support HPC applications, so it naturally supports MPI and communication over the host fabric. Which usually just works because the network is the same inside and outside the container. The more complicated bit is making sure that the container has the right set of MPI libraries. MPI is an open specification, but there are several implementations (OpenMPI, MVAPICH2, and Intel MPI to name three) with some non-overlapping feature sets. If the host and container are running different MPI implementations, or even different versions of the same implementation, hilarity may ensue.
+
+The general rule is that you want the version of MPI inside the container to be the same version or newer than the host. You may be thinking that this is not good for the portability of your container, and you are right. Containerizing MPI applications is not terribly difficult with Singularity, but it comes at the cost of additional requirements for the host system.
+
+| Note |
+|:--|
+| Many HPC Systems, like Stampede2, have highspeed, low latency networks that have special drivers. Infiniband, Ares, and OmniPath are three different specs for these types of networks. When running MPI jobs, if the container doesn’t have the right libraries, it won’t be able to use those special interconnects to communicate between nodes. |
+
+
+The Stampede 2’s Intel MPI implementation is ABI compatible with MPICH, which *can* be `apt-get` installed from normal Ubuntu repositories. Lonestar 5’s cray_mpich is a separate [can of worms](https://github.com/singularityware/singularity/issues/876), so we recommend using Stampede2 for singularity+mpi.
+
+### Hello World
+
+
+While not the most exciting, it is mandatory that we compile and run a singularity-based hello world MPI image. This means we’ll be writing another definition file.
+
+To improve usability and hopefully reduce confusion, I took the liberty of creating a docker file with a version of MPI that is compatible with Stampede 2 that we can bootstrap from.
+
+https://hub.docker.com/r/gzynda/tacc-stampede2-mpi/
+
+Please create `hello_mpi.dsc` with the following contents
+
+```
+Bootstrap: docker
+From: gzynda/tacc-stampede2-mpi:latest
+
+%setup
+
+
+# Pre-build commands
+
+# Copy files necessary in POST ( <= v2.3 )
+cp mpi_hello_world.c $SINGULARITY_ROOTFS/mpi_hello_world.c
+
+%files
+
+# Include any necessary files from host
+
+%post
+
+
+# Installation commands
+
+# Compile program
+mpicc mpi_hello_world.c -o /usr/local/bin/mpi_hello_world
+
+%labels
+
+
+# Include any metadata 
+Version 0.1
+
+%environment
+
+
+# Modify the environment
+
+%runscript
+
+
+# used with singularity run
+echo "Running hello world"
+exec mpi_hello_world
+
+%test
+
+
+# quality control tests
+mpirun -n 2 mpi_hello_world
+```
+
+Then you can build the image by running
+
+```
+wget https://raw.githubusercontent.com/wesleykendall/mpitutorial/gh-pages/tutorials/mpi-hello-world/code/mpi_hello_world.c
+sudo singularity create --size 512 hello_mpi.img
+sudo singularity bootstrap hello_mpi.img hello_mpi.dsc
+```
+
+Assuming you have MFA set up, you can transfer your `hello_mpi.img` image to Stampede 2 and run it in a multi-node idev session.
+
+```
+# Transfer the image
+scp hello_mpi.img stampede2.tacc.utexas.edu:
+
+# Log into stampede
+ssh stampede2.tacc.utexas.edu
+```
+
+Then continuing on Stampede 2
+
+```
+# Launch an 2-node idev session
+idev -N 2 -n 8
+
+# Load singularity module
+module load tacc-singularity
+
+# Run container
+ibrun singularity run hello_mpi.img
+```
+
+This will hopefully get you started building your own MPI-enabled containers.
 
 <br>
-### Singularity and GPU computing
+## Singularity and MPI
+
+<br>
+## Singularity and GPU computing
 
 We will not cover GPU computing in this workshop, as Jetstream and Stampede2 do not have GPUs. However, know that GPUs are supported in singularity. Since singularity supported docker containers, it has been fairly simple to utilize GPUs for machine learning code like TensorFlow. For example, singularity commands on a machine with GPUs available may appear as:
 
@@ -617,6 +723,8 @@ Please note that the –nv flag specifically passes the GPU drivers into the con
 $ singularity exec caffe-latest.img caffe device_query -gpu 0
 ERROR: GPU not detected
 ```
+
+If you are interested in utilizing GPUs at TACC, please request time on Maverick, and check our [GPGPU comupting guide with singuarlity](https://cyverse-container-camp-workshop-2018.readthedocs-hosted.com/en/latest/singularity/singularityadvanced.html#singularity-and-gpu-computing)
 
 <br>
 # Bring Your Own Code
