@@ -58,6 +58,9 @@ All while preserving system security and stability.
 <br>
 # Development Environment
 
+While singularity can pull and run containers in unprivileged userspace, you cannot create containers without administrative privileges.
+To circumvent system requirements for both docker and singularity, we will be using Ubuntu instances on the Jetstream cloud as our development environment.
+
 ### Creating a development instance on Jetstream
 
 Next, we will set up our environment to run singularity on Jetstream, TACC's high performance science cloud:
