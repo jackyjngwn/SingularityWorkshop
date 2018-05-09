@@ -1,4 +1,13 @@
-# Onboarding - (15 minutes)
+Navigation:
+
+* [Onboarding](#onboarding)
+* [Intro to Containers](#intro-to-containers)
+* [Development Environment](#development-environment)
+* [Pulling Containers](#pulling-containers)
+* [Running Containers](#running-containers)
+* [Building Containers](#building-containers)
+
+# Onboarding
 
 This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers.
 
@@ -113,15 +122,13 @@ rm -rf singularity\*
 singularity --version
 ```
 
-Done!
-
-After the last command, you should see
+Done! After the last command, you should see
 
 ```
 2.3.2-dist
 ```
 
-Because we are on a cloud system, and we are all using the same base image, this should only work. Welcome to the cloud, where EVERY development environment can be the same.
+Because we are on a cloud system, and we are all using the same base image, this should just work. Welcome to the cloud, where EVERY development environment can be the same.
 
 <br>
 ## Checking the installation
@@ -135,6 +142,8 @@ cat /etc/*release
 
 <br>
 ## Singularity Commands
+
+Use `singularity help` on the command line to see a list of options:
 
 ```
 $ singularity help
@@ -179,12 +188,12 @@ CONTAINER REGISTRY COMMANDS:
 
 <br>
 # Pulling Containers
-Lets try pulling a Centos 7 container from DockerHub:
+Lets try pulling a CentOS 7 container from DockerHub:
 
 [https://hub.docker.com/r/library/centos/](https://hub.docker.com/r/library/centos/)
 
 
-If you try a plain pull from docker using singularity 2.3, you will receive the following error:
+If you try a plain pull from Docker using singularity 2.3, you will receive the following error:
 
 ```
 $ singularity pull docker://centos:7
@@ -198,27 +207,27 @@ You can fix this with the `--size` parameter. You can see that the compressed im
 $ singularity pull --size 256 docker://centos:7
 ```
 
-NOTE: if you specify a size that is too small, and receive a stream of errors, you can cancel the process with `ctrl+c`.
+*NOTE: if you specify a size that is too small, and receive a stream of errors, you can cancel the process with `ctrl+c`.*
 
-You can also name the image you pull to something useful
+You can also name the image you pull to something useful:
 
 ```
 $ singularity pull --size 256 --name c7.img docker://centos:7
 ```
 
-When you run the pull command you will notice that singularity downloads several `*.tgz` files from dockerhub. These are cached by singularity in
+When you run the pull command you will notice that singularity downloads several `*.tgz` files from DockerHub. These are cached by singularity in:
 
 ```
 $ ls -lh ~/.singularity/docker
 ```
 
-The default storage on a Jetstream instance is correlated with the number of requested cores unless you attach an external volume. To make sure you don’t run out of storage, you should either clean up your cache
+The default storage on a Jetstream instance is correlated with the number of requested cores unless you attach an external volume. To make sure you don’t run out of storage, you should either clean up your cache:
 
 ```
 $ rm -rf ~/.singularity/docker/*
 ```
 
-Or have singularity write to /tmp, which is cleaned up after every reboot
+Or have singularity write to /tmp, which is cleaned up after every reboot:
 
 ```
 SINGULARITY_TMPDIR=/tmp SINGULARITY_CACHEDIR=/tmp singularity --debug pull --size 256 --name ubuntu-tmpdir.img docker://ubuntu:latest
@@ -236,81 +245,95 @@ You can print the current year with: `echo $(date +”%Y”)`
 <br>
 # Running Containers
 
-Singularity containers can be invoked with singularity
-shell - runs an interactive shell inside a container
-exec - runs a command inside a container
-run - launches the runscript of a container
+Singularity containers can be invoked with `singularity command`, where `command` can be one of:
+* `shell` - runs an interactive shell inside a container
+* `exec` - runs a command inside a container
+* `run` - launches the runscript of a container
 
-The following examples will be using the
+The following examples will be using the miniconda image [available here](https://hub.docker.com/r/continuumio/miniconda/) Please pull it with:
 
-https://hub.docker.com/r/continuumio/miniconda/
-
-Image. Please pull it with
-
+```
 $ singularity pull docker://continuumio/miniconda:4.4.10
-## shell - Running a container interactively
-While not the best way to interact with containers in production or at scale, you can “enter” a container environment using the “singularity shell” command for invocation. If you have ever used ssh to reach another machine, this will be a similar experience.
+```
 
+<br>
+## `shell` - Running a container interactively
+
+While not the best way to interact with containers in production or at scale, you can “enter” a container environment using the `singularity shell` command for invocation. If you have ever used ssh to reach another machine, this will be a similar experience.
+
+```
 $ singularity shell miniconda-4.4.10.img
+```
 
-Now that you are inside the container, is anything different?
+Now that you are inside the container, is anything different? You should notice that your prompt text has changed, but what else? Are you a different user inside the container?
 
-You should notice that your prompt text has changed, but what else?
-
-Are you a different user inside the container?
-
+```
 $ whoami
+```
 
 Did your current working directory change?
 
+```
 $ pwd
+```
 
-If you forgot where you were before, you can `exit` the container, check, and then re-enter the container.
+If you forgot where you were before, you can `exit` the container, check, and then re-enter the container. Do you see the same files?
 
-Do you see the same files?
-
+```
 $ ls
+```
 
-The goal of singularity is to ship an environment that can interact with the host devices and file systems without elevating user privileges. This means you will be the same user inside the container as you are on the outside. By default, your $PWD, $HOME, and /tmp directories are mounted inside the container. At TACC, your $WORK and $SCRATCH directories are also mounted inside containers. This is so the programs you build inside your container can interact with data on the outside.
+The goal of singularity is to ship an environment that can interact with the host devices and file systems without elevating user privileges. This means you will be the same user inside the container as you are on the outside. By default, your `$PWD`, `$HOME`, and `/tmp` directories are mounted inside the container. At TACC, your `$WORK` and `$SCRATCH` directories are also mounted inside containers. This is so the programs you build inside your container can interact with data on the outside.
 
-Try writing files to different locations
+Try writing files to different locations:
 
+```
 $ echo “hello” > world.txt
 $ echo “hello” > /tmp/world.txt
 $ echo “hello” > /root/world.txt
 $ exit
+```
 
-That last command shouldn’t have worked because only the root user should have access to the /root folder. You can test this by entering the image using the sudo command
+That last command should not have worked because only the root user should have access to the `/root` folder. You can test this by entering the image using the sudo command:
 
+```
 $ sudo singularity shell miniconda-4.4.10.img
 $ whoami
 $ touch /root/cats
 $ exit
+```
 
 This interaction is nice for prototyping a container, but it is not reproducible so we discourage it. If you have exited your root session of singularity, you can also see that those `world.txt` files do exist outside of the container you were running as well.
 
+```
 $ head world.txt /tmp/world.txt
+```
 
 Back inside the container, you can interactively run python code and write the results outside the container.
 
+```
 $ singularity shell miniconda-4.4.10.img
 $ python --version &> container_python.txt
 $ exit
 $ cat container_python.txt
+```
 
-
-## exec - Invoking a container with a specific command
+<br>
+## `exec` - Invoking a container with a specific command
 The `exec` command is much like the `docker run` command, where it takes arguments and runs time in a shell in the container and then exits.
 
+```
 $ python --version
 $ singularity exec miniconda-4.4.10.img python --version
+```
 
 This is the way we recommend working with a singularity container on TACC systems. You can create a single environment and then run external scripts
 
-## run - Default invocation
+<br>
+## `run` - Default invocation
 Similar to the `CMD` rule for Docker containers, a singularity container contains a `%runscript%` section, which is run whenever a container is launched with `run`.
 
-
+<br>
 # Building Containers
 
 
