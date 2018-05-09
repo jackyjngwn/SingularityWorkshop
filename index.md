@@ -61,6 +61,7 @@ All while preserving system security and stability.
 While singularity can pull and run containers in unprivileged userspace, you cannot create containers without administrative privileges.
 To circumvent system requirements for both docker and singularity, we will be using Ubuntu instances on the Jetstream cloud as our development environment.
 
+<br>
 ### Creating a development instance on Jetstream
 
 Next, we will set up our environment to run singularity on Jetstream, TACC's high performance science cloud:
@@ -97,7 +98,6 @@ Please choose the “Open Web Shell” option, which will open a new tab to the 
 
 <img src="images/jetstream7.png">
 
-
 <br>
 ### Interacting with web shell
 
@@ -117,23 +117,22 @@ Again, right-click on the CLI to actually insert the text.
 
 <img src="images/jetstream10.png">
 
-
 <br>
 ### Installing singularity
 
-While we have pre-installed docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build that from source.
+While we have pre-installed docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build the latest 2.3 release (2.3.2) from source.
 
 ```
-$ VERSION=2.3.2
-$ wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
-$ tar xvf singularity-$VERSION.tar.gz
-$ cd singularity-$VERSION
-$ ./configure --prefix=/usr/local
-$ make
-$ sudo make install
-$ cd ..
-$ rm -rf singularity\*
-$ singularity --version
+VERSION=2.3.2
+wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
+tar -xvf singularity-$VERSION.tar.gz
+cd singularity-$VERSION
+./configure --prefix=/usr/local
+make
+sudo make install
+cd ..
+rm -rf singularity*
+singularity --version
 ```
 
 Done! After the last command, you should see
@@ -150,9 +149,9 @@ Because we are on a cloud system, and we are all using the same base image, this
 You can test the installation by pulling a Debian image from docker:
 
 ```
-$ singularity pull --size 512 docker://debian:latest
-$ singularity exec debian-latest.img cat /etc/*release
-$ cat /etc/*release
+singularity pull --size 512 docker://debian:latest
+singularity exec debian-latest.img cat /etc/*release
+cat /etc/*release
 ```
 
 <br>
@@ -246,8 +245,13 @@ $ rm -rf ~/.singularity/docker/*
 Or have singularity write to /tmp, which is cleaned up after every reboot:
 
 ```
-$ SINGULARITY_TMPDIR=/tmp SINGULARITY_CACHEDIR=/tmp singularity --debug pull --size 256 --name ubuntu-tmpdir.img docker://ubuntu:latest
-$ ls -lh /tmp/docker
+SINGULARITY_TMPDIR=/tmp SINGULARITY_CACHEDIR=/tmp singularity --debug pull --size 256 --name ubuntu-tmpdir.img docker://ubuntu:latest
+```
+
+You can see the files it created by looking in `/tmp`
+
+```
+ls -lh /tmp/docker
 ```
 
 <br>
@@ -304,34 +308,34 @@ The goal of singularity is to ship an environment that can interact with the hos
 Try writing files to different locations:
 
 ```
-$ echo “hello” > world.txt
-$ echo “hello” > /tmp/world.txt
-$ echo “hello” > /root/world.txt
-$ exit
+echo “hello” > world.txt
+echo “hello” > /tmp/world.txt
+echo “hello” > /root/world.txt
+exit
 ```
 
 That last command should not have worked because only the root user should have access to the `/root` folder. You can test this by entering the image using the sudo command:
 
 ```
-$ sudo singularity shell miniconda-4.4.10.img
-$ whoami
-$ touch /root/cats
-$ exit
+sudo singularity shell miniconda-4.4.10.img
+whoami
+touch /root/cats
+exit
 ```
 
 This interaction is nice for prototyping a container, but it is not reproducible so we discourage it. If you have exited your root session of singularity, you can also see that those `world.txt` files do exist outside of the container you were running as well.
 
 ```
-$ head world.txt /tmp/world.txt
+head world.txt /tmp/world.txt
 ```
 
 Back inside the container, you can interactively run python code and write the results outside the container.
 
 ```
-$ singularity shell miniconda-4.4.10.img
-$ python --version &> container_python.txt
-$ exit
-$ cat container_python.txt
+singularity shell miniconda-4.4.10.img
+python --version &> container_python.txt
+exit
+cat container_python.txt
 ```
 
 <br>
@@ -339,8 +343,8 @@ $ cat container_python.txt
 The `exec` command is much like the `docker run` command, where it takes arguments and runs time in a shell in the container and then exits.
 
 ```
-$ python --version
-$ singularity exec miniconda-4.4.10.img python --version
+python --version
+singularity exec miniconda-4.4.10.img python --version
 ```
 
 This is the way we recommend working with a singularity container on TACC systems. You can create a single environment and then run external scripts
@@ -488,11 +492,11 @@ From: continuumio/anaconda:latest
 After creating your image, you can bootstrap the image as follows:
 
 ```
-$ singularity create -F -s 8192 pysit-0.5b3.img
-$ sudo singularity bootstrap pysit-0.5b3.img pysit.def
+singularity create -F -s 8192 pysit-0.5b3.img
+sudo singularity bootstrap pysit-0.5b3.img pysit.def
 - or -
-$ singularity create -F -s 8192 pysit-0.5b3-2.img
-$ sudo singularity bootstrap pysit-0.5b3-2.img pysit-2.def
+singularity create -F -s 8192 pysit-0.5b3-2.img
+sudo singularity bootstrap pysit-0.5b3-2.img pysit-2.def
 ```
 
 Next, download a test script with the following command:
