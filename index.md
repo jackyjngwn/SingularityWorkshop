@@ -28,7 +28,7 @@ You should be able to log in with your XSEDE account [here](https://portal.xsede
 Containers were created to isolate applications from the host environment. This means that all necessary dependencies are packaged into the application itself, allowing the application to run anywhere containers are supported. With container technology, administrators are no longer bogged down supporting every tool and library under the sun, and developers have complete control over the environment their tools ship with.
 
 <br>
-### Container Technologies
+### Container technologies
 Even if you haven’t run or built a docker container, you have probably heard of the technology. Docker has become extremely popular for both applications and services, but it requires elevated privileges, making it a security risk for shared servers. Singularity was designed to run without root privileges while also providing access to host devices, making it a good fit for traditional HPC environments.
 
 | | Docker | Singularity |
@@ -44,7 +44,7 @@ Even if you haven’t run or built a docker container, you have probably heard o
 | Configurable capabilities for enhanced security | | X |
 
 <br>
-### Singularity Flow
+### Singularity workflow
 Singularity allows you to:
 
 1. Create and modify images on a development system
@@ -96,7 +96,7 @@ Please choose the “Open Web Shell” option, which will open a new tab to the 
 
 
 <br>
-### Interacting with Web Shell
+### Interacting with web shell
 
 Pasting text is somewhat clunky, but output formatting is somewhat better in this than the old web shell. Please feel free to try either. If you do want to paste text, please press
 
@@ -116,9 +116,9 @@ Again, right-click on the CLI to actually insert the text.
 
 
 <br>
-### Installing Singularity
+### Installing singularity
 
-While we have pre-installed Docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build that from source.
+While we have pre-installed docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build that from source.
 
 ```
 $ VERSION=2.3.2
@@ -142,7 +142,7 @@ Done! After the last command, you should see
 Because we are on a cloud system, and we are all using the same base image, this should just work. Welcome to the cloud, where EVERY development environment can be the same.
 
 <br>
-### Checking the Installation
+### Checking the installation
 
 You can test the installation by pulling a Debian image from docker:
 
@@ -153,7 +153,7 @@ $ cat /etc/*release
 ```
 
 <br>
-### Singularity Commands
+### Singularity commands
 
 Use `singularity help` on the command line to see a list of options:
 
@@ -206,7 +206,7 @@ Try pulling a CentOS 7 container from DockerHub:
 [https://hub.docker.com/r/library/centos/](https://hub.docker.com/r/library/centos/)
 
 
-If you try a plain pull from Docker using singularity 2.3, you will receive the following error:
+If you try a plain pull from docker using singularity 2.3, you will receive the following error:
 
 ```
 $ singularity pull docker://centos:7
@@ -344,7 +344,7 @@ This is the way we recommend working with a singularity container on TACC system
 
 <br>
 ### Default invocation (`run`)
-Similar to the `CMD` rule for Docker containers, a singularity container contains a `%runscript%` section, which is run whenever a container is launched with `run`.
+Similar to the `CMD` rule for docker containers, a singularity container contains a `%runscript%` section, which is run whenever a container is launched with `run`.
 
 <br>
 # Building Containers
@@ -588,9 +588,9 @@ A few things to consider when using HPC systems:
 ### Singularity and MPI
 
 <br>
-### Singularity and GPU Computing
+### Singularity and GPU computing
 
-We will not cover GPU computing in this workshop, as Jetstream and Stampede2 do not have GPUs. However, know that GPUs are supported in singularity. Since singularity supported Docker containers, it has been fairly simple to utilize GPUs for machine learning code like TensorFlow. For example, singularity commands on a machine with GPUs available may appear as:
+We will not cover GPU computing in this workshop, as Jetstream and Stampede2 do not have GPUs. However, know that GPUs are supported in singularity. Since singularity supported docker containers, it has been fairly simple to utilize GPUs for machine learning code like TensorFlow. For example, singularity commands on a machine with GPUs available may appear as:
 
 ```
 $ singularity pull docker://nvidia/caffe:latest
