@@ -623,7 +623,7 @@ While not the most exciting, it is mandatory that we compile and run a singulari
 
 To improve usability and hopefully reduce confusion, I took the liberty of creating a docker file with a version of MPI that is compatible with Stampede 2 that we can bootstrap from.
 
-https://hub.docker.com/r/gzynda/tacc-stampede2-mpi/
+<https://hub.docker.com/r/gzynda/tacc-stampede2-mpi>
 
 Please create `hello_mpi.dsc` with the following contents
 
