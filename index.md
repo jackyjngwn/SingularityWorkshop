@@ -1,9 +1,12 @@
 # Onboarding - (15 minutes)
 
 This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers.
-Intro to Containers
+
+# Intro to Containers
+
 Containers were created to isolate applications from the host environment. This means that all necessary dependencies are packaged into the application itself, allowing the application to run anywhere containers are supported. With container technology, administrators are no longer bogged down supporting every tool and library under the sun, and developers have complete control over the environment their tools ship with.
-Container Technologies
+
+## Container Technologies
 Even if you haven’t run or built a docker container, you have probably heard of the technology. Docker has become extremely popular for both applications and services, but it requires elevated privileges, making it a security risk for shared servers. Singularity was designed to run without root privileges while also providing access to host devices, making it a good fit for traditional HPC environments.
 
 | | Docker | Singularity |
@@ -17,16 +20,20 @@ Even if you haven’t run or built a docker container, you have probably heard o
 | Can become root in container | X | |
 | Control network interfaces | X | |
 | Configurable capabilities for enhanced security | | X |
-Singularity Flow
+
+## Singularity Flow
 Singularity allows you to
-Create and modify images on a development system
-Build containers using recipes or pulling from repositories
-Execute containers on production systems
+1 Create and modify images on a development system
+2 Build containers using recipes or pulling from repositories
+3 Execute containers on production systems
 All while preserving system security and stability.
 
 http://singularity.lbl.gov/assets/img/diagram/singularity-2.4-flow.png
-Development Environment
-Creating a development instance on Jetstream - (20 minutes)
+
+# Development Environment
+
+## Creating a development instance on Jetstream - (20 minutes)
+
 https://use.jetstream-cloud.org/application/images
 Log in using XSEDE credentials
 .
@@ -44,7 +51,7 @@ You can then select your instance and see all the options for managing it
 
 Please choose the “Open Web Shell” option, which will open a new tab to the CLI of your instance.
 
-Interacting with Web Shell
+## Interacting with Web Shell
 Pasting text is somewhat clunky, but output formatting is somewhat better in this than the old web shell. Please feel free to try either. If you do want to paste text, please press
 
 ctrl+alt+shift
@@ -55,7 +62,7 @@ Ctrl+alt+shift
 
 Again, right-click on the cli to actually insert the text.
 
-Installing Singularity
+## Installing Singularity
 While we have pre-installed docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build that from source.
 
 VERSION=2.3.2
@@ -66,7 +73,7 @@ cd singularity-$VERSION
 make
 sudo make install
 cd ..
-rm -rf singularity*
+rm -rf singularity\*
 singularity --version
 
 Done!
@@ -76,13 +83,15 @@ After the last command, you should see
 2.3.1-dist
 
 Because we’re on a cloud system, and we’re all using the same base image, this should only work. Welcome to the cloud, where EVERY development environment can be the same.
-Checking the installation
+
+## Checking the installation
 You can test the installation by pulling a debian image from docker
 
 singularity pull --size 512 docker://debian:latest
 singularity exec debian-latest.img cat /etc/*release
 cat /etc/*release
-Singularity Commands
+
+## Singularity Commands
 $ singularity help
 USAGE: singularity [global options...] <command> [command options...] ...
 
@@ -122,7 +131,7 @@ CONTAINER MANAGEMENT COMMANDS:
 CONTAINER REGISTRY COMMANDS:
     pull          pull a Singularity/Docker container to $PWD
 
-Pulling Containers
+# Pulling Containers
 Lets try pulling a centos 7 container from dockerhub
 
 https://hub.docker.com/r/library/centos/
@@ -148,13 +157,13 @@ When you run the pull command you’ll notice that singularity downloads several
 $ ls -lh ~/.singularity/docker
 The default storage on a jetstream instance is correlated with the number of requested cores unless you attach an external volume. To make sure you don’t run out of storage, you should either clean up your cache
 
-$ rm -rf ~/.singularity/docker/*
+$ rm -rf ~/.singularity/docker/\*
 
 Or have singularity write to /tmp, which is cleaned up after every reboot
 
 SINGULARITY_TMPDIR=/tmp SINGULARITY_CACHEDIR=/tmp singularity --debug pull --size 256 --name ubuntu-tmpdir.img docker://ubuntu:latest
 ls -lh /tmp/docker
-Exercise 1 - (10 minutes)
+## Exercise 1 - (10 minutes)
 Pull an image from dockerhub and include the date (year-month-day) in the filename.
 
 https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/
@@ -162,7 +171,7 @@ https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/
 You can print the current year with
 
 echo $(date +”%Y”)
-Running Containers
+# Running Containers
 Singularity containers can be invoked with singularity
 shell - runs an interactive shell inside a container
 exec - runs a command inside a container
@@ -175,7 +184,7 @@ https://hub.docker.com/r/continuumio/miniconda/
 Image. Please pull it with
 
 $ singularity pull docker://continuumio/miniconda:4.4.10
-shell - Running a container interactively
+## shell - Running a container interactively
 While not the best way to interact with containers in production or at scale, you can “enter” a container environment using the “singularity shell” command for invocation. If you have ever used ssh to reach another machine, this will be a similar experience.
 
 $ singularity shell miniconda-4.4.10.img
@@ -224,16 +233,21 @@ $ singularity shell miniconda-4.4.10.img
 $ python --version &> container_python.txt
 $ exit
 $ cat container_python.txt
-exec - Invoking a container with a specific command
+
+
+## exec - Invoking a container with a specific command
 The `exec` command is much like the `docker run` command, where it takes arguments and runs time in a shell in the container and then exits.
 
 $ python --version
 $ singularity exec miniconda-4.4.10.img python --version
 
 This is the way we recommend working with a singularity container on TACC systems. You can create a single environment and then run external scripts
-run - Default invocation
+
+## run - Default invocation
 Similar to the `CMD` rule for Docker containers, a singularity container contains a `%runscript%` section, which is run whenever a container is launched with `run`.
-Building Containers
+
+
+# Building Containers
 
 
 
@@ -243,22 +257,22 @@ Here, we will demonstrate how to build a singularity image of the PySIT toolbox,
 
 http://pysit.readthedocs.io/en/latest/examples/horizontal_reflector.html
 
-Singularity Bootstrap
+## Singularity Bootstrap
 Besides pulling pre-built docker images, you can build your own by writing a definition file and bootstrapping (building) the image on your own.
 
 A singularity file contains a header, which specifies the manager and base OS to build from.
 
-Docker header
+### Docker header
 Bootstrap: docker
 From: ubuntu:latest
 
-Centos header
+### Centos header
 BootStrap: yum
 OSVersion: 7
 MirrorURL: http://mirror.centos.org/centos-%{OSVERSION}/%{OSVERSION}/os/$basearch/
 Include: yum
 
-Definition sections
+### Definition sections
 After you make your header, you just need to write the sections of your container.
 
 %setup - When you need to run commands and copy files into the container before %post
@@ -277,7 +291,7 @@ Prefix the execution command with exec
 Runs after %post
 Run anytime using singularity test
 
-Definition file for PySIT
+### Definition file for PySIT
 
 Pull an example PySIT definition file with the following command:
 
@@ -324,7 +338,7 @@ From: debian:latest
 
 ##################################################
 
-Bootstrapping
+### Bootstrapping
 After creating your image, you can bootstrap the image as follows:
 
 singularity create -F -s 4096 pysit-0.5b3.img
@@ -346,7 +360,7 @@ If all goes well, you should find an ‘output.png’ file in the current direct
 
 
 
-Singularity on HPC
+# Singularity on HPC
 
 Up to now, we have run singularity on our cloud system, Jetstream. This is analogous to how singularity could be run on our personal computers or small servers. In the next section we will demonstrate how to run singularity on the Stampede2 supercomputer using the batch queueing system. This enables large-scale, parallel jobs employing MPI.
 
@@ -408,27 +422,27 @@ Singularity is in the process of changing image formats. Depending on the versio
 
 
 
-Advanced Singularity
+# Advanced Singularity
 
-Singularity and MPI
+## Singularity and MPI
 
-Singularity and GPU Computing
+## Singularity and GPU Computing
 
 
-Bring Your Own Code
+# Bring Your Own Code
 
 Do you have some software that you would like to containerize? Let’s use this time to work together on it.
 
 
 
-*Singularity Resources*
-**Singularity related resources**
+# Singularity Resources
+## Singularity related resources
 `Singularity Homepage <http://singularity.lbl.gov/>`
 `Singularity Hub <https://www.singularity-hub.org/>`
 `University of Arizona Singularity Tutorials <https://docs.hpc.arizona.edu/display/UAHPC/Singularity+Tutorials>`
 `NIH HPC <https://hpc.nih.gov/apps/singularity.html>`
 `Dolmades - Windows Apps in Linux Docker-Singularity Containers <http://dolmades.org>`_ *Warning not tested*
-**Singularity Talks**
+## Singularity Talks
 Gregory Kurtzer, creator of Singularity has provided two good talks online:
 Introduction to Singularity <https://wilsonweb.fnal.gov/slides/hpc-containers-singularity-introductory.pdf>`
 `Advanced Singularity <https://www.intel.com/content/dam/www/public/us/en/documents/presentation/hpc-containers-singularity-advanced.pdf>`_. 
