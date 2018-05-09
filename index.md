@@ -13,6 +13,7 @@
 * [Bring Your Own Code](#bring-your-own-code)
 * [Additional Resources](#additional-resources)
 
+<br>
 # Onboarding
 
 This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers. We will first take a few minutes to make sure everyone has TACC / XSEDE accounts, and hand out training account information where appropriate.
@@ -384,19 +385,19 @@ After you make your header, you just need to write the sections of your containe
 
 * `%setup` - When you need to run commands and copy files into the container before `%post`
 * `%post` - The actual setup commands
- * Making directories
- * yum/apt commands
- * git clone
- * make
+  * Making directories
+  * yum/apt commands
+  * git clone
+  * make
 * `%labels` - Any metadata you want associated with your container
- * NAME VALUE
+  * NAME VALUE
 * `%environment` - Environment values that are sources whenever using the container
- * NAME VALUE
+  * NAME VALUE
 * `%runscript` - This is what runs when you singularity run the container
- * Prefix the execution command with exec
+  * Prefix the execution command with exec
 * `%test` - A test to make sure the container was built correctly
- * Runs after `%post`
- * Run anytime using singularity test
+  * Runs after `%post`
+  * Run anytime using singularity test
 
 <br>
 ### Definition file for PySIT
@@ -588,6 +589,20 @@ A few things to consider when using HPC systems:
 
 <br>
 ### Singularity and GPU Computing
+
+We will not cover GPU computing in this workshop, as Jetstream and Stampede2 do not have GPUs. However, know that GPUs are supported in singularity. Since singularity supported Docker containers, it has been fairly simple to utilize GPUs for machine learning code like TensorFlow. For example, singularity commands on a machine with GPUs available may appear as:
+
+```
+$ singularity pull docker://nvidia/caffe:latest
+$ singularity exec --nv caffe-latest.img caffe device_query -gpu 0
+```
+
+Please note that the –nv flag specifically passes the GPU drivers into the container. If you leave it out, the GPU will not be detected.
+
+```
+$ singularity exec caffe-latest.img caffe device_query -gpu 0
+ERROR: GPU not detected
+```
 
 <br>
 # Bring Your Own Code
