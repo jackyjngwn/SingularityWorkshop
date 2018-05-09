@@ -2,10 +2,12 @@
 
 This workshop will be using virtual machines on Jetstream as our development environment for for Singularity containers.
 
+<br>
 # Intro to Containers
 
 Containers were created to isolate applications from the host environment. This means that all necessary dependencies are packaged into the application itself, allowing the application to run anywhere containers are supported. With container technology, administrators are no longer bogged down supporting every tool and library under the sun, and developers have complete control over the environment their tools ship with.
 
+<br>
 ## Container Technologies
 Even if you haven’t run or built a docker container, you have probably heard of the technology. Docker has become extremely popular for both applications and services, but it requires elevated privileges, making it a security risk for shared servers. Singularity was designed to run without root privileges while also providing access to host devices, making it a good fit for traditional HPC environments.
 
@@ -21,27 +23,32 @@ Even if you haven’t run or built a docker container, you have probably heard o
 | Control network interfaces | X | |
 | Configurable capabilities for enhanced security | | X |
 
+<br>
 ## Singularity Flow
-Singularity allows you to
-1 Create and modify images on a development system
-2 Build containers using recipes or pulling from repositories
-3 Execute containers on production systems
+Singularity allows you to:
+
+1. Create and modify images on a development system
+2. Build containers using recipes or pulling from repositories
+3. Execute containers on production systems
+
 All while preserving system security and stability.
 
 http://singularity.lbl.gov/assets/img/diagram/singularity-2.4-flow.png
 
+<br>
 # Development Environment
+
 
 ## Creating a development instance on Jetstream - (20 minutes)
 
 https://use.jetstream-cloud.org/application/images
-Log in using XSEDE credentials
-.
+
+Log in using XSEDE credentials:
 Click the project tab
 
 Select the “STAR Container Workshop” project and click “New” to launch a new instance for yourself. It will first ask you which image you want to start from. Today, we’ll be starting from “”. To find it you can just search “ubuntu docker” and it should be the first hit.
 
-Then you need to specify the resources to allocate towards your instance. 
+Then you need to specify the resources to allocate towards your instance.
 
 !!!Please be sure to prefix your instance name with your username!!!
 
@@ -51,20 +58,25 @@ You can then select your instance and see all the options for managing it
 
 Please choose the “Open Web Shell” option, which will open a new tab to the CLI of your instance.
 
+<br>
 ## Interacting with Web Shell
+
 Pasting text is somewhat clunky, but output formatting is somewhat better in this than the old web shell. Please feel free to try either. If you do want to paste text, please press
 
-ctrl+alt+shift
+`ctrl+alt+shift`
 
 Paste your text in the text box, exit the side window by hitting
 
-Ctrl+alt+shift
+`ctrl+alt+shift`
 
-Again, right-click on the cli to actually insert the text.
+Again, right-click on the CLI to actually insert the text.
 
+<br>
 ## Installing Singularity
+
 While we have pre-installed docker on your newly-launched image, you also need to install singularity. Stampede2 is still using Singularity 2.3.1, so we need to build that from source.
 
+```
 VERSION=2.3.2
 wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
 tar xvf singularity-$VERSION.tar.gz
@@ -75,23 +87,30 @@ sudo make install
 cd ..
 rm -rf singularity\*
 singularity --version
+```
 
 Done!
 
 After the last command, you should see
 
-2.3.1-dist
+```2.3.2-dist```
 
-Because we’re on a cloud system, and we’re all using the same base image, this should only work. Welcome to the cloud, where EVERY development environment can be the same.
+Because we are on a cloud system, and we are all using the same base image, this should only work. Welcome to the cloud, where EVERY development environment can be the same.
 
+<br>
 ## Checking the installation
-You can test the installation by pulling a debian image from docker
+You can test the installation by pulling a Debian image from docker:
 
+```
 singularity pull --size 512 docker://debian:latest
 singularity exec debian-latest.img cat /etc/*release
 cat /etc/*release
+```
 
+<br>
 ## Singularity Commands
+
+```
 $ singularity help
 USAGE: singularity [global options...] <command> [command options...] ...
 
@@ -130,48 +149,67 @@ CONTAINER MANAGEMENT COMMANDS:
 
 CONTAINER REGISTRY COMMANDS:
     pull          pull a Singularity/Docker container to $PWD
+```
 
+<br>
 # Pulling Containers
-Lets try pulling a centos 7 container from dockerhub
+Lets try pulling a Centos 7 container from DockerHub:
 
-https://hub.docker.com/r/library/centos/
+[https://hub.docker.com/r/library/centos/](https://hub.docker.com/r/library/centos/)
 
-If you try a plain pull from docker using singularity 2.3, you’ll receive the following error:
 
+If you try a plain pull from docker using singularity 2.3, you will receive the following error:
+
+```
 $ singularity pull docker://centos:7
 ERROR: Could not obtain the container size, try using --size
 ABORT: Aborting with RETVAL=255
+```
 
-You can fix this with the `--size` parameter. You can see that the compressed image on dockerhub is fairly small, so lets try pre-allocating an image with 256 MB of space.
+You can fix this with the `--size` parameter. You can see that the compressed image on DockerHub is fairly small, so lets try pre-allocating an image with 256 MB of space.
 
+```
 $ singularity pull --size 256 docker://centos:7
+```
 
 NOTE: if you specify a size that is too small, and receive a stream of errors, you can cancel the process with `ctrl+c`.
 
 You can also name the image you pull to something useful
 
+```
 $ singularity pull --size 256 --name c7.img docker://centos:7
+```
 
-When you run the pull command you’ll notice that singularity downloads several `*.tgz` files from dockerhub. These are cached by singularity in
+When you run the pull command you will notice that singularity downloads several `*.tgz` files from dockerhub. These are cached by singularity in
 
+```
 $ ls -lh ~/.singularity/docker
-The default storage on a jetstream instance is correlated with the number of requested cores unless you attach an external volume. To make sure you don’t run out of storage, you should either clean up your cache
+```
 
-$ rm -rf ~/.singularity/docker/\*
+The default storage on a Jetstream instance is correlated with the number of requested cores unless you attach an external volume. To make sure you don’t run out of storage, you should either clean up your cache
+
+```
+$ rm -rf ~/.singularity/docker/*
+```
 
 Or have singularity write to /tmp, which is cleaned up after every reboot
 
+```
 SINGULARITY_TMPDIR=/tmp SINGULARITY_CACHEDIR=/tmp singularity --debug pull --size 256 --name ubuntu-tmpdir.img docker://ubuntu:latest
 ls -lh /tmp/docker
+```
+
+<br>
 ## Exercise 1 - (10 minutes)
-Pull an image from dockerhub and include the date (year-month-day) in the filename.
+Pull an image from DockerHub and include the date (year-month-day) in the filename.
 
-https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/
+[https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/](https://www.cyberciti.biz/faq/linux-unix-formatting-dates-for-display/)
 
-You can print the current year with
+You can print the current year with: `echo $(date +”%Y”)`
 
-echo $(date +”%Y”)
+<br>
 # Running Containers
+
 Singularity containers can be invoked with singularity
 shell - runs an interactive shell inside a container
 exec - runs a command inside a container
@@ -251,9 +289,9 @@ Similar to the `CMD` rule for Docker containers, a singularity container contain
 
 
 
-PySIT is an open source toolbox for seismic inversion and seismic imaging developed by Russell J. Hewett and Laurent Demanet in the Imaging and Computing Group in the Department of Mathematics at MIT. 
+PySIT is an open source toolbox for seismic inversion and seismic imaging developed by Russell J. Hewett and Laurent Demanet in the Imaging and Computing Group in the Department of Mathematics at MIT.
 
-Here, we will demonstrate how to build a singularity image of the PySIT toolbox, then run the “horizontal reflector” demo described here: 
+Here, we will demonstrate how to build a singularity image of the PySIT toolbox, then run the “horizontal reflector” demo described here:
 
 http://pysit.readthedocs.io/en/latest/examples/horizontal_reflector.html
 
@@ -445,6 +483,5 @@ Do you have some software that you would like to containerize? Let’s use this 
 ## Singularity Talks
 Gregory Kurtzer, creator of Singularity has provided two good talks online:
 Introduction to Singularity <https://wilsonweb.fnal.gov/slides/hpc-containers-singularity-introductory.pdf>`
-`Advanced Singularity <https://www.intel.com/content/dam/www/public/us/en/documents/presentation/hpc-containers-singularity-advanced.pdf>`_. 
+`Advanced Singularity <https://www.intel.com/content/dam/www/public/us/en/documents/presentation/hpc-containers-singularity-advanced.pdf>`_.
 Vanessa Sochat, lead developer of Singularity Hub, also has given a great talk on `Singularity <https://docs.google.com/presentation/d/14-iKKUpGJC_1qpVFVUyUaitc8xFSw9Rp3v_UE9IGgjM/pub?start=false&loop=false&delayms=3000&slide=id.g1c1cec989b_0_154>`_ which you can see online.
-
