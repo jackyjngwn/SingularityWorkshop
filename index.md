@@ -10,6 +10,8 @@
 * [Building Containers](#building-containers)
 * [Singularity on HPC](#singularity-on-hpc)
 * [Advanced Singularity](#advanced-singularity)
+  * [MPI](#singularity-and-mpi)
+  * [GPGPU](#singularity-and-gpu-computing)
 * [Bring Your Own Code](#bring-your-own-code)
 * [Additional Resources](#additional-resources)
 
@@ -599,7 +601,10 @@ A few things to consider when using HPC systems:
 # Advanced Singularity
 
 In this section, we cover some of the advanced capabilities of singularity.
-##Singularity and MPI
+
+
+## Singularity and MPI
+
 Singularity was designed to support HPC applications, so it naturally supports MPI and communication over the host fabric. Which usually just works because the network is the same inside and outside the container. The more complicated bit is making sure that the container has the right set of MPI libraries. MPI is an open specification, but there are several implementations (OpenMPI, MVAPICH2, and Intel MPI to name three) with some non-overlapping feature sets. If the host and container are running different MPI implementations, or even different versions of the same implementation, hilarity may ensue.
 
 The general rule is that you want the version of MPI inside the container to be the same version or newer than the host. You may be thinking that this is not good for the portability of your container, and you are right. Containerizing MPI applications is not terribly difficult with Singularity, but it comes at the cost of additional requirements for the host system.
@@ -703,9 +708,6 @@ ibrun singularity run hello_mpi.img
 ```
 
 This will hopefully get you started building your own MPI-enabled containers.
-
-<br>
-## Singularity and MPI
 
 <br>
 ## Singularity and GPU computing
