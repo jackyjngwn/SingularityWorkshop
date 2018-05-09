@@ -33,7 +33,7 @@ Singularity allows you to:
 
 All while preserving system security and stability.
 
-http://singularity.lbl.gov/assets/img/diagram/singularity-2.4-flow.png
+![alt text](http://singularity.lbl.gov/assets/img/diagram/singularity-2.4-flow.png)
 
 <br>
 # Development Environment
@@ -41,22 +41,38 @@ http://singularity.lbl.gov/assets/img/diagram/singularity-2.4-flow.png
 
 ## Creating a development instance on Jetstream - (20 minutes)
 
-https://use.jetstream-cloud.org/application/images
+[https://use.jetstream-cloud.org/application/images](https://use.jetstream-cloud.org/application/images)
 
 Log in using XSEDE credentials:
-Click the project tab
+
+<img src="images/jetstream1.png">
+
+Click the project tab:
+
+<img src="images/jetstream2.png">
 
 Select the “STAR Container Workshop” project and click “New” to launch a new instance for yourself. It will first ask you which image you want to start from. Today, we’ll be starting from “”. To find it you can just search “ubuntu docker” and it should be the first hit.
 
+<img src="images/jetstream3.png">
+
 Then you need to specify the resources to allocate towards your instance.
 
-!!!Please be sure to prefix your instance name with your username!!!
+***Please be sure to prefix your instance name with your username***
+
+<img src="images/jetstream4.png">
 
 After clicking “Launch Instance” it will take about 10-15 minutes for your instance to deploy and be ready for use. You may also need to refresh the page.
 
-You can then select your instance and see all the options for managing it
+<img src="images/jetstream5.png">
+
+You can then select your instance and see all the options for managing it:
+
+<img src="images/jetstream6.png">
 
 Please choose the “Open Web Shell” option, which will open a new tab to the CLI of your instance.
+
+<img src="images/jetstream7.png">
+
 
 <br>
 ## Interacting with Web Shell
@@ -65,11 +81,19 @@ Pasting text is somewhat clunky, but output formatting is somewhat better in thi
 
 `ctrl+alt+shift`
 
+<img src="images/jetstream8.png">
+
+
 Paste your text in the text box, exit the side window by hitting
 
 `ctrl+alt+shift`
 
+<img src="images/jetstream9.png">
+
 Again, right-click on the CLI to actually insert the text.
+
+<img src="images/jetstream10.png">
+
 
 <br>
 ## Installing Singularity
@@ -93,7 +117,9 @@ Done!
 
 After the last command, you should see
 
-```2.3.2-dist```
+```
+2.3.2-dist
+```
 
 Because we are on a cloud system, and we are all using the same base image, this should only work. Welcome to the cloud, where EVERY development environment can be the same.
 
