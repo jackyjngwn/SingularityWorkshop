@@ -353,6 +353,8 @@ This is the way we recommend working with a singularity container on TACC system
 ### Default invocation (`run`)
 Similar to the `CMD` rule for docker containers, a singularity container contains a `%runscript%` section, which is run whenever a container is launched with `run`.
 
+This is explained in the next section.
+
 <br>
 # Building Containers
 
